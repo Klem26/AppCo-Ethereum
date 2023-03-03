@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import "./App.css";
+import axios from "axios";
 
 const getUser = () => Promise.resolve({ id: 1, name: "Tanya" });
+const URL = "http://hn.algolia.com/api/v1/search";
 
 const Search = ({ value, onChange, children }) => (
   <div>
@@ -36,6 +37,8 @@ const App = () => {
   const [search, setSearch] = useState("");
   const [user, setUser] = useState(null);
   const [isChecked, setIsChecked] = useState(false);
+  const [news, setNews] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -47,6 +50,15 @@ const App = () => {
 
   const handleChange = ({ target }) => {
     setSearch(target.value);
+  };
+
+  const handleFetch = async () => {
+    try {
+      const result = await axios.get(`${URL}?query=React`);
+      setNews(result.data.hits);
+    } catch (error) {
+      setError(error);
+    }
   };
 
   return (
@@ -62,6 +74,22 @@ const App = () => {
         Search:
       </Search>
       <p>Searches for {search ? search : "..."}</p>
+
+      <div>
+        <button type="button" onClick={handleFetch}>
+          Fetch News
+        </button>
+
+        {error && <span>Something went wrong ...</span>}
+
+        <ul>
+          {news.map(({ objectID, url, title }) => (
+            <li key={objectID}>
+              <a href={url}>{title}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 };
